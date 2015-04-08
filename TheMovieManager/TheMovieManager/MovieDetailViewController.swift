@@ -114,10 +114,37 @@ class MovieDetailViewController: UIViewController {
     // MARK: - Actions
     
     @IBAction func toggleFavoriteButtonTouchUp(sender: AnyObject) {
-        
-        // TODO: Add the movie to favorites, then update favorite button */
-        println("implement me: MovieDetailViewController toggleFavoriteButtonTouchUp()")
-        
+        if isFavorite {
+            TMDBClient.sharedInstance().postToFavorites(movie!, favorite: false) { status_code, error in
+                if let err = error {
+                    println(err)
+                } else {
+                    if status_code == 13 {
+                        self.isFavorite = false
+                        dispatch_async(dispatch_get_main_queue()) {
+                            self.toggleFavoriteButton.tintColor = UIColor.blackColor()
+                        }
+                    } else {
+                        println("Unexpected status code \(status_code)")
+                    }
+                }
+            }
+        } else {
+            TMDBClient.sharedInstance().postToFavorites(movie!, favorite: true) { status_code, error in
+                if let err = error {
+                    println(err)
+                } else {
+                    if status_code == 1 || status_code == 12 {
+                        self.isFavorite = true
+                        dispatch_async(dispatch_get_main_queue()) {
+                            self.toggleFavoriteButton.tintColor = nil
+                        }
+                    } else {
+                        println("Unexpected status code \(status_code)")
+                    }
+                }
+            }
+        }
     }
     
     @IBAction func toggleWatchlistButtonTouchUp(sender: AnyObject) {
