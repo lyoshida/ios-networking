@@ -121,58 +121,6 @@ class TMDBClient : NSObject {
         return task
     }
     
-    /* Use this unFavoriteButtonTouchUpInside as a reference if you need it 😄 */
-    
-    //    func unFavoriteButtonTouchUpInside(sender: AnyObject) {
-    //
-    //        /* TASK: Remove movie as favorite, then update favorite buttons */
-    //
-    //        /* 1. Set the parameters */
-    //        let methodParameters = [
-    //            "api_key": appDelegate.apiKey,
-    //            "session_id": appDelegate.sessionID!
-    //        ]
-    //
-    //        /* 2. Build the URL */
-    //        let urlString = appDelegate.baseURLSecureString + "account/\(appDelegate.userID!)/favorite" + appDelegate.escapedParameters(methodParameters)
-    //        let url = NSURL(string: urlString)!
-    //
-    //        /* 3. Configure the request */
-    //        let request = NSMutableURLRequest(URL: url)
-    //        request.HTTPMethod = "POST"
-    //        request.addValue("application/json", forHTTPHeaderField: "Accept")
-    //        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-    //        request.HTTPBody = "{\"media_type\": \"movie\",\"media_id\": \(self.movie!.id),\"favorite\":false}".dataUsingEncoding(NSUTF8StringEncoding)
-    //
-    //        /* 4. Make the request */
-    //        let task = session.dataTaskWithRequest(request) { data, response, downloadError in
-    //
-    //            if let error = downloadError? {
-    //                println("Could not complete the request \(error)")
-    //            } else {
-    //
-    //                /* 5. Parse the data */
-    //                var parsingError: NSError? = nil
-    //                let parsedResult = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as NSDictionary
-    //
-    //                /* 6. Use the data! */
-    //                if let status_code = parsedResult["status_code"] as? Int {
-    //                    if status_code == 13 {
-    //                        dispatch_async(dispatch_get_main_queue()) {
-    //                            self.unFavoriteButton.hidden = true
-    //                            self.favoriteButton.hidden = false
-    //                        }
-    //                    }
-    //                } else {
-    //                    println("Could not find status_code in \(parsedResult)")
-    //                }
-    //            }
-    //        }
-    //        
-    //        /* 7. Start the request */
-    //        task.resume()
-    //    }
-    
     // MARK: - Helpers
     
     /* Helper: Substitute the key for the value that is contained within the method name */
