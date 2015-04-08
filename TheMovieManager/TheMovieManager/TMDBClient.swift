@@ -90,12 +90,35 @@ class TMDBClient : NSObject {
     func taskForPOSTMethod(method: String, parameters: [String : AnyObject], jsonBody: [String:AnyObject], completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
         
         /* 1. Set the parameters */
-        /* 2/3. Build the URL and configure the request */
-        /* 4. Make the request */
-        /* 5/6. Parse the data and use the data (happens in completion handler) */
-        /* 7. Start the request */
+        var mutableParameters = parameters
+        mutableParameters[ParameterKeys.ApiKey] = Constants.ApiKey
         
-        return NSURLSessionDataTask()
+        /* 2/3. Build the URL and configure the request */
+        let urlString = Constants.BaseURLSecure + method + TMDBClient.escapedParameters(mutableParameters)
+        let url = NSURL(string: urlString)!
+        let request = NSMutableURLRequest(URL: url)
+        var jsonifyError: NSError? = nil
+        request.HTTPMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.HTTPBody = NSJSONSerialization.dataWithJSONObject(jsonBody, options: nil, error: &jsonifyError)
+        
+        /* 4. Make the request */
+        let task = session.dataTaskWithRequest(request) {data, response, downloadError in
+            
+            /* 5/6. Parse the data and use the data (happens in completion handler) */
+            if let error = downloadError? {
+                let newError = TMDBClient.errorForData(data, response: response, error: error)
+                completionHandler(result: nil, error: downloadError)
+            } else {
+                TMDBClient.parseJSONWithCompletionHandler(data, completionHandler)
+            }
+        }
+        
+        /* 7. Start the request */
+        task.resume()
+        
+        return task
     }
     
     /* Use this unFavoriteButtonTouchUpInside as a reference if you need it 😄 */
