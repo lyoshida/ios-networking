@@ -189,7 +189,7 @@ extension TMDBClient {
         taskForGETMethod(mutableMethod, parameters: parameters) { JSONResult, error in
             
             /* 3. Send the desired value(s) to completion handler */
-            if let error = error? {
+            if let error = error {
                 completionHandler(result: nil, error: error)
             } else {
                 
