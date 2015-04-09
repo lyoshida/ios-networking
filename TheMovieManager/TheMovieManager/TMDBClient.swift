@@ -107,11 +107,11 @@ class TMDBClient : NSObject {
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             
             /* 5/6. Parse the data and use the data (happens in completion handler) */
-            if let error = downloadError? {
+            if let error = downloadError {
                 let newError = TMDBClient.errorForData(data, response: response, error: error)
                 completionHandler(result: nil, error: downloadError)
             } else {
-                TMDBClient.parseJSONWithCompletionHandler(data, completionHandler)
+                TMDBClient.parseJSONWithCompletionHandler(data, completionHandler: completionHandler)
             }
         }
         
