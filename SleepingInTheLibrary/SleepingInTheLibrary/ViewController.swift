@@ -4,21 +4,22 @@
 //
 //  Created by Jarrod Parkes on 1/26/15.
 //  Copyright (c) 2015 Udacity. All rights reserved.
-//
+
+//  Converted to support xcode 7 and new swift version
 
 import UIKit
 
 /* 1 - Define constants */
 let BASE_URL = "https://api.flickr.com/services/rest/"
 let METHOD_NAME = "flickr.galleries.getPhotos"
-let API_KEY = "ENTER_YOUR_API_KEY_HERE"
+let API_KEY = "YOUR_API_KEY_HERE"
 let GALLERY_ID = "5704-72157622566655097"
 let EXTRAS = "url_m"
 let DATA_FORMAT = "json"
 let NO_JSON_CALLBACK = "1"
 
 class ViewController: UIViewController {
- 
+    
     @IBOutlet weak var photoImageView: UIImageView!
     @IBOutlet weak var photoTitle: UILabel!
     
@@ -33,11 +34,11 @@ class ViewController: UIViewController {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-
+    
     func getImageFromFlickr() {
         
         /* 2 - API method arguments */
@@ -59,11 +60,19 @@ class ViewController: UIViewController {
         /* 4 - Initialize task for getting data */
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             if let error = downloadError {
-                println("Could not complete the request \(error)")
+                print("Could not complete the request \(error)", appendNewline: false)
             } else {
                 /* 5 - Success! Parse the data */
                 var parsingError: NSError? = nil
-                let parsedResult: AnyObject! = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &parsingError)
+                let parsedResult: AnyObject!
+                do {
+                    parsedResult = try NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments)
+                } catch var error as NSError {
+                    parsingError = error
+                    parsedResult = nil
+                } catch {
+                    fatalError()
+                }
                 
                 if let photosDictionary = parsedResult.valueForKey("photos") as? NSDictionary {
                     if let photoArray = photosDictionary.valueForKey("photo") as? [[String: AnyObject]] {
@@ -71,7 +80,7 @@ class ViewController: UIViewController {
                         /* 6 - Grab a single, random image */
                         let randomPhotoIndex = Int(arc4random_uniform(UInt32(photoArray.count)))
                         let photoDictionary = photoArray[randomPhotoIndex] as [String: AnyObject]
-
+                        
                         /* 7 - Get the image url and title */
                         let photoTitle = photoDictionary["title"] as? String
                         let imageUrlString = photoDictionary["url_m"] as? String
@@ -84,21 +93,21 @@ class ViewController: UIViewController {
                                 self.photoTitle.text = photoTitle
                             })
                         } else {
-                            println("Image does not exist at \(imageURL)")
+                            print("Image does not exist at \(imageURL)", appendNewline: false)
                         }
                     } else {
-                        println("Cant find key 'photo' in \(photosDictionary)")
+                        print("Cant find key 'photo' in \(photosDictionary)", appendNewline: false)
                     }
                 } else {
-                    println("Cant find key 'photos' in \(parsedResult)")
+                    print("Cant find key 'photos' in \(parsedResult)", appendNewline: false)
                 }
             }
         }
         
         /* 9 - Resume (execute) the task */
-        task.resume()
+        task!.resume()
     }
-
+    
     /* Helper function: Given a dictionary of parameters, convert to a string for a url */
     func escapedParameters(parameters: [String : AnyObject]) -> String {
         
@@ -117,6 +126,6 @@ class ViewController: UIViewController {
             
         }
         
-        return (!urlVars.isEmpty ? "?" : "") + join("&", urlVars)
+        return (!urlVars.isEmpty ? "?" : "") + "&".join(urlVars)
     }
 }
