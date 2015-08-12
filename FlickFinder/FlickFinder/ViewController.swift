@@ -10,7 +10,7 @@ import UIKit
 
 let BASE_URL = "https://api.flickr.com/services/rest/"
 let METHOD_NAME = "flickr.photos.search"
-let API_KEY = "ENTER_YOUR_API_KEY_HERE"
+let API_KEY = "??"
 let EXTRAS = "url_m"
 let SAFE_SEARCH = "1"
 let DATA_FORMAT = "json"
@@ -31,7 +31,7 @@ class ViewController: UIViewController {
         let methodArguments = [
             "method": METHOD_NAME,
             "api_key": API_KEY,
-            "text": "baby asian elephant",
+            "text": self.phraseTextField.text!,
             "safe_search": SAFE_SEARCH,
             "extras": EXTRAS,
             "format": DATA_FORMAT,
@@ -41,25 +41,28 @@ class ViewController: UIViewController {
     }
     
     @IBAction func searchPhotosByLatLonButtonTouchUp(sender: AnyObject) {
-        println("Will implement this function in a later step...")
+        print("Will implement this function in a later step...", appendNewline: false)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        println("Initialize the tapRecognizer in viewDidLoad")
+        tapRecognizer = UITapGestureRecognizer(target: self, action: "handleSingleTap:")
+        tapRecognizer?.numberOfTapsRequired = 1
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        println("Add the tapRecognizer and subscribe to keyboard notifications in viewWillAppear")
+        self.addKeyboardDismissRecognizer()
+        self.subscribeToKeyboardNotifications()
     }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         
-        println("Remove the tapRecognizer and unsubscribe from keyboard notifications in viewWillDisappear")
+        self.removeKeyboardDismissRecognizer()
+        self.unsubscribeToKeyboardNotifications()
     }
     
     /* ============================================================
@@ -68,37 +71,45 @@ class ViewController: UIViewController {
     
     /* 1 - Dismissing the keyboard */
     func addKeyboardDismissRecognizer() {
-        println("Add the recognizer to dismiss the keyboard")
+        self.view.addGestureRecognizer(tapRecognizer!)
     }
     
     func removeKeyboardDismissRecognizer() {
-        println("Remove the recognizer to dismiss the keyboard")
+        self.view.removeGestureRecognizer(tapRecognizer!)
     }
     
     func handleSingleTap(recognizer: UITapGestureRecognizer) {
-        println("End editing here")
+        self.view.endEditing(true)
     }
     
     /* 2 - Shifting the keyboard so it does not hide controls */
     func subscribeToKeyboardNotifications() {
-        println("Subscribe to the KeyboardWillShow and KeyboardWillHide notifications")
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
+        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:", name: UIKeyboardWillHideNotification, object: nil)
+        
     }
     
     func unsubscribeToKeyboardNotifications() {
-        println("Unsubscribe to the KeyboardWillShow and KeyboardWillHide notifications")
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardWillShowNotification, object: nil)
+        
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: UIKeyboardWillHideNotification, object: nil)
     }
     
     func keyboardWillShow(notification: NSNotification) {
-        println("Shift the view's frame up so that controls are shown")
+        self.view.frame.origin.y -= CGFloat(self.getKeyboardHeight(notification))
+        
     }
     
     func keyboardWillHide(notification: NSNotification) {
-        println("Shift the view's frame down so that the view is back to its original placement")
+        self.view.frame.origin.y += CGFloat(self.getKeyboardHeight(notification))
+        
     }
     
     func getKeyboardHeight(notification: NSNotification) -> CGFloat {
-        println("Get and return the keyboard's height from the notification")
-        return 0.0
+        let userInfo = notification.userInfo
+        let keyboardSize = userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue
+        return CGFloat(keyboardSize.CGRectValue().height)
     }
     
     /* ============================================================ */
@@ -112,10 +123,10 @@ class ViewController: UIViewController {
         
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
             if let error = downloadError {
-                println("Could not complete the request \(error)")
+                print("Could not complete the request \(error)")
             } else {
                 var parsingError: NSError? = nil
-                let parsedResult = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as! NSDictionary
+                let parsedResult = try! NSJSONSerialization.JSONObjectWithData(data!, options: NSJSONReadingOptions.AllowFragments) as! NSDictionary
                 
                 /* 1 - Get the photos dictionary */
                 if let photosDictionary = parsedResult.valueForKey("photos") as? [String:AnyObject] {
@@ -147,10 +158,10 @@ class ViewController: UIViewController {
                                     self.photoTitleLabel.text = "\(photoTitle!)"
                                 })
                             } else {
-                                println("Image does not exist at \(imageURL)")
+                                print("Image does not exist at \(imageURL)")
                             }
                         } else {
-                            println("Cant find key 'photo' in \(photosDictionary)")
+                            print("Cant find key 'photo' in \(photosDictionary)")
                         }
                     } else {
                         dispatch_async(dispatch_get_main_queue(), {
@@ -160,7 +171,7 @@ class ViewController: UIViewController {
                         })
                     }
                 } else {
-                    println("Cant find key 'photos' in \(parsedResult)")
+                    print("Cant find key 'photos' in \(parsedResult)")
                 }
             }
         }
@@ -187,6 +198,6 @@ class ViewController: UIViewController {
             
         }
         
-        return (!urlVars.isEmpty ? "?" : "") + join("&", urlVars)
+        return (!urlVars.isEmpty ? "?" : "") + "&".join(urlVars)
     }
 }
