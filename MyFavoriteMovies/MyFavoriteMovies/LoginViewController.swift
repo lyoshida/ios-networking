@@ -111,12 +111,15 @@ class LoginViewController: UIViewController {
         
         /* 1. Set the parameters */
         let methodParameters = [
-            "key": "value"
+            "api_key": appDelegate.apiKey,
         ]
         
         /* 2. Build the URL */
-        let urlString = "BUILD_THE_URL" + appDelegate.escapedParameters(methodParameters)
+        let urlString = appDelegate.baseURLSecureString + "authentication/token/new" + appDelegate.escapedParameters(methodParameters)
         let url = NSURL(string: urlString)!
+        
+        println(appDelegate.baseURLSecureString + "authentication/token/new")
+        println(appDelegate.escapedParameters(methodParameters))
         
         /* 3. Configure the request */
         let request = NSMutableURLRequest(URL: url)
@@ -127,13 +130,19 @@ class LoginViewController: UIViewController {
             
             if let error = downloadError {
                 println("getRequestToken: Print an error message")
+                self.debugTextLabel.text = "Error trying to get request token."
             } else {
                 
                 /* 5. Parse the data */
                 println("getRequestToken: Parse the data")
+                var parsingError: NSError? = nil
+                let parsedResult = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.AllowFragments, error: &parsingError) as! NSDictionary
                 
                 /* 6. Use the data! */
                 println("getRequestToken: Use the data")
+                if let token = parsedResult["request_token"] as? String {
+                    appDelegate.requestToken = token
+                }
                 
             }
         }
